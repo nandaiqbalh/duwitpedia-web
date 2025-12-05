@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
 import { motion } from 'framer-motion';
 import { LoginCard } from "@/components/login/login-card";
