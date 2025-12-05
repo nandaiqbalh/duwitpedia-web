@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, Github, Heart } from "lucide-react";
+import { Mail, Heart } from "lucide-react";
 
 export function LandingFooter() {
   return (
