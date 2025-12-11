@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Wallet, CreditCard, PieChart, Settings, LogOut, FolderOpen, X, ChevronDown, ChevronRight, Tag } from "lucide-react";
+import { Home, Wallet, CreditCard, PieChart, Settings, LogOut, FolderOpen, X, ChevronDown, ChevronRight, Tag, DollarSign, Target, Brain, Stars, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -8,12 +8,23 @@ import { useConfirmDialog } from "@/components/common";
 import { signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Accounts", href: "/accounts", icon: FolderOpen },
   { name: "Transactions", href: "/transactions", icon: CreditCard },
   { name: "Reports", href: "/reports", icon: PieChart },
+  { name: "Budgeting", href: "#", icon: BookOpen, comingSoon: true },
+  { name: "Saving Goals", href: "#", icon: Target, comingSoon: true },
+  { name: "Smart Insights", href: "#", icon: Stars, comingSoon: true },
   {
     name: "Configuration",
     icon: Settings,
@@ -28,6 +39,33 @@ export function UserSidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const { ConfirmDialog, showConfirm } = useConfirmDialog();
   const [openSubmenu, setOpenSubmenu] = useState(null);
+  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [comingSoonFeature, setComingSoonFeature] = useState('');
+
+  const getFeatureDescription = (feature) => {
+    switch (feature) {
+      case 'Budgeting':
+        return {
+          description: "Create and manage budgets for different categories of your expenses. Set spending limits, track your progress, and get alerts when you're approaching your budget limits. Perfect for controlling spending and achieving financial goals.",
+          benefits: "Helps you avoid overspending, understand where your money goes, and make informed financial decisions."
+        };
+      case 'Saving Goals':
+        return {
+          description: "Set specific savings targets with timelines and track your progress towards financial milestones. Whether it's for an emergency fund, vacation, or a big purchase, our saving goals feature will help you stay motivated and on track.",
+          benefits: "Motivates consistent saving habits, visualizes progress, and celebrates achievements when goals are reached."
+        };
+      case 'Smart Insights':
+        return {
+          description: "Get intelligent analysis of your spending patterns, income trends, and financial health. Receive personalized recommendations, detect unusual transactions, and discover opportunities to optimize your finances.",
+          benefits: "Provides data-driven insights, helps identify trends, and offers actionable recommendations for better financial management."
+        };
+      default:
+        return {
+          description: "This exciting feature is coming soon to help you manage your finances better.",
+          benefits: "Stay tuned for updates!"
+        };
+    }
+  };
 
   // If current pathname belongs to a submenu, keep that parent open and lock it (cannot be collapsed)
   const activeParent = navigation.find((item) =>
@@ -163,7 +201,20 @@ export function UserSidebar({ isOpen, onClose }) {
             );
           }
 
-          return (
+          return item.comingSoon ? (
+            <button
+              key={item.name}
+              onClick={() => {
+                setComingSoonFeature(item.name);
+                setShowComingSoon(true);
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
+            >
+              <item.icon className="h-5 w-5" />
+              {item.name}
+              <span className="ml-auto text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Soon</span>
+            </button>
+          ) : (
             <Link
               key={item.name}
               href={item.href}
@@ -236,6 +287,46 @@ export function UserSidebar({ isOpen, onClose }) {
 
       {/* Confirm Dialog */}
       <ConfirmDialog />
+
+      {/* Coming Soon Dialog */}
+      <Dialog open={showComingSoon} onOpenChange={setShowComingSoon}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Stars className="w-6 h-6 text-blue-500" />
+              </div>
+              {comingSoonFeature} - Coming Soon
+            </DialogTitle>
+          </DialogHeader>
+
+          <DialogDescription asChild>
+            <div className="text-sm text-gray-700 space-y-3">
+              <p>
+                {getFeatureDescription(comingSoonFeature).description}
+              </p>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="font-medium text-blue-900 mb-1">Benefits:</p>
+                <p className="text-blue-800">
+                  {getFeatureDescription(comingSoonFeature).benefits}
+                </p>
+              </div>
+              <p className="text-gray-600">
+                We're working hard to bring this feature to you. Stay tuned for updates!
+              </p>
+            </div>
+          </DialogDescription>
+
+          <DialogFooter>
+            <button
+              onClick={() => setShowComingSoon(false)}
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Got it
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

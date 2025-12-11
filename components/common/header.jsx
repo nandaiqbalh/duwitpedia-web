@@ -14,10 +14,20 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useConfirmDialog } from '@/components/common';
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 export function Header({ onMenuClick }) {
   const { data: session } = useSession();
   const { ConfirmDialog, showConfirm } = useConfirmDialog();
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
 
   const handleSignOut = async () => {
     const confirmed = await showConfirm({
@@ -71,7 +81,8 @@ export function Header({ onMenuClick }) {
             <Button
               variant="ghost"
               size="sm"
-              className="relative h-9 w-9 rounded-full p-0 hover:bg-gray-100"
+              onClick={() => setShowNotificationDialog(true)}
+              className="relative h-9 w-9 rounded-full p-0 hover:bg-gray-100 cursor-pointer"
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5 text-gray-600" />
@@ -139,6 +150,48 @@ export function Header({ onMenuClick }) {
 
       {/* Confirm Dialog */}
       <ConfirmDialog />
+
+      {/* Notification Coming Soon Dialog */}
+      <Dialog open={showNotificationDialog} onOpenChange={setShowNotificationDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Bell className="w-6 h-6 text-blue-500" />
+              </div>
+              Notifications - Coming Soon
+            </DialogTitle>
+          </DialogHeader>
+
+          <DialogDescription asChild>
+            <div className="text-sm text-gray-700 space-y-3">
+              <p>
+                Stay updated with important financial notifications, reminders, and alerts.
+                Get notified about budget limits, upcoming bills, transaction approvals, and more.
+              </p>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="font-medium text-blue-900 mb-1">Features:</p>
+                <ul className="text-blue-800 text-sm space-y-1">
+                  <li>• Budget alerts and spending notifications</li>
+                  <li>• Bill payment reminders</li>
+                  <li>• Transaction confirmations</li>
+                  <li>• Financial goal milestones</li>
+                  <li>• Security alerts</li>
+                </ul>
+              </div>
+              <p className="text-gray-600">
+                We're working on bringing you a comprehensive notification system. Stay tuned!
+              </p>
+            </div>
+          </DialogDescription>
+
+          <DialogFooter>
+            <Button onClick={() => setShowNotificationDialog(false)} className="w-full sm:w-auto">
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
