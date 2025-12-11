@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Wallet, CreditCard, PieChart, Settings, LogOut, FolderOpen, X, ChevronDown, ChevronRight, Tag, DollarSign, Target, Brain, Stars, BookOpen } from "lucide-react";
+import { Home, Wallet, CreditCard, PieChart, Settings, LogOut, FolderOpen, X, ChevronDown, ChevronRight, Tag, DollarSign, Target, Brain, Stars, BookOpen, Info } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -202,18 +202,28 @@ export function UserSidebar({ isOpen, onClose }) {
           }
 
           return item.comingSoon ? (
-            <button
+            <div
               key={item.name}
-              onClick={() => {
-                setComingSoonFeature(item.name);
-                setShowComingSoon(true);
-              }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed"
             >
               <item.icon className="h-5 w-5" />
               {item.name}
-              <span className="ml-auto text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Soon</span>
-            </button>
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setComingSoonFeature(item.name);
+                    setShowComingSoon(true);
+                  }}
+                  className="cursor-pointer group relative p-1 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
+                  aria-label="Show information"
+                >
+                  <Info className="w-4 h-4" />
+                  <span className="absolute -top-8 right-0 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                    Click for info
+                  </span>
+                </button>
+              </div>
+            </div>
           ) : (
             <Link
               key={item.name}
