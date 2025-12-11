@@ -61,20 +61,6 @@ export function UserSidebar({ isOpen, onClose }) {
     setOpenSubmenu(openSubmenu === menuName ? null : menuName);
   };
 
-  const handleSignOut = async () => {
-    const confirmed = await showConfirm({
-      title: "Sign Out",
-      message: "Are you sure you want to sign out from your account?",
-      variant: "warning",
-      confirmText: "Yes, Sign Out",
-      cancelText: "Cancel",
-    });
-
-    if (confirmed) {
-      await signOut({ callbackUrl: "/" });
-    }
-  };
-
   const sidebarVariants = {
     closed: {
       x: "-100%",
@@ -193,18 +179,7 @@ export function UserSidebar({ isOpen, onClose }) {
             </Link>
           );
         })}
-      </nav>
-
-      {/* Logout */}
-      <div className="border-t border-gray-200 p-3">
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-        >
-          <LogOut className="h-5 w-5" />
-          Sign Out
-        </button>
-      </div>
+      </nav>     
     </>
   );
 
