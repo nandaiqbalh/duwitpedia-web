@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useConfirmDialog } from '@/components/common';
+import { getUserInitials } from '@/lib/utils';
 import { useState } from 'react';
 import {
   Dialog,
@@ -28,6 +29,7 @@ export function Header({ onMenuClick }) {
   const { data: session } = useSession();
   const { ConfirmDialog, showConfirm } = useConfirmDialog();
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     const confirmed = await showConfirm({
@@ -43,20 +45,9 @@ export function Header({ onMenuClick }) {
     }
   };
 
-  // Get user initials for avatar fallback
-  const getUserInitials = (name) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <header className={`sticky top-0 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 ${isProfileMenuOpen ? 'z-20' : 'z-40'}`}>
         <div className="flex h-16 items-center justify-between px-4 lg:px-6">
           {/* Left side - Mobile menu button */}
           <div className="flex items-center gap-4">
@@ -96,7 +87,7 @@ export function Header({ onMenuClick }) {
             </Button>
 
             {/* Profile Dropdown */}
-            <DropdownMenu>
+            <DropdownMenu open={isProfileMenuOpen} onOpenChange={setIsProfileMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -114,7 +105,7 @@ export function Header({ onMenuClick }) {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent className="w-56 z-[80]" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
@@ -147,6 +138,14 @@ export function Header({ onMenuClick }) {
           </div>
         </div>
       </header>
+
+      {/* Profile Menu Backdrop */}
+      {isProfileMenuOpen && (
+        <div
+          className="fixed inset-0 z-[75] bg-black/20 backdrop-blur-sm"
+          onClick={() => setIsProfileMenuOpen(false)}
+        />
+      )}
 
       {/* Confirm Dialog */}
       <ConfirmDialog />
