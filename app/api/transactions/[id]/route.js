@@ -290,7 +290,6 @@ export async function PUT(request, { params }) {
 
     // Update wallet and account balances
     await handleTransactionUpdate(existingTransaction, transaction);
-    await handleTransactionUpdate(existingTransaction, transaction);
 
     return NextResponse.json({
       success: true,
