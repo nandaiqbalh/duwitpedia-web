@@ -1,8 +1,9 @@
 'use client';
 
-import { Wallet, Edit, Trash2, CreditCard, ChevronDown, ChevronUp } from 'lucide-react';
+import { Wallet, Edit, Trash2, CreditCard, ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,8 +50,7 @@ export function AccountCard({ account, onEdit, onDelete, index = 0 }) {
     <div className="group relative">
       {/* Main Card */}
       <div className={cn(
-        "relative overflow-hidden rounded-2xl shadow-lg transition-all duration-300",
-        "hover:shadow-2xl hover:scale-[1.02]",
+        "relative overflow-hidden rounded-2xl shadow-lg",
         gradient
       )}>
         {/* Background Pattern */}
@@ -67,30 +67,33 @@ export function AccountCard({ account, onEdit, onDelete, index = 0 }) {
               <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                 <CreditCard className="w-6 h-6" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold">{account.name}</h3>
+              <div className="max-w-32 sm:max-w-36 md:max-w-48 lg:max-w-64">
+                <h3 className="text-xl font-bold truncate">{account.name}</h3>
                 <p className="text-sm text-white/80">{account.type || 'Account'}</p>
               </div>
             </div>
-            
-            {/* Actions */}
-            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onEdit(account)}
-                className="text-white hover:bg-white/20"
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onDelete(account)}
-                className="text-white hover:bg-white/20"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="rounded-full bg-white/30 text-white hover:bg-white/40 border border-white/20"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => onEdit(account)}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(account)}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
