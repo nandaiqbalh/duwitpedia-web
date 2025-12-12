@@ -2,6 +2,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/provider/session-provider";
 import { QueryProvider } from "@/components/provider/query-provider";
+import { RecaptchaProvider } from "@/components/provider/recaptcha-provider";
 import { Toaster } from "sonner";
 
 const poppins = Poppins({
@@ -24,8 +25,10 @@ export default function RootLayout({ children }) {
       >
         <Providers>
           <QueryProvider>
-            {children}
-            <Toaster position="top-right" richColors />
+            <RecaptchaProvider>
+              {children}
+              <Toaster position="top-right" richColors />
+            </RecaptchaProvider>
           </QueryProvider>
         </Providers>
       </body>

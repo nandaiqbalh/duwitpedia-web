@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,14 +16,44 @@ export function LoginCard({ mode = "google" }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
 
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl });
+  const handleGoogleSignIn = async () => {
+    if (!executeRecaptcha) {
+      console.warn("reCAPTCHA not available");
+      signIn("google", { callbackUrl });
+      return;
+    }
+
+    try {
+      // Generate reCAPTCHA token
+      const token = await executeRecaptcha("google_login");
+      
+      // Verify token with backend
+      const verifyResponse = await fetch("/api/verify-captcha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      const verifyData = await verifyResponse.json();
+
+      if (verifyData.success) {
+        // Proceed with Google sign in
+        signIn("google", { callbackUrl });
+      } else {
+        setEmailError("reCAPTCHA verification failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("reCAPTCHA error:", error);
+      // Still allow sign in even if reCAPTCHA fails
+      signIn("google", { callbackUrl });
+    }
   };
 
   const handleEmailSignIn = async (e) => {
@@ -47,6 +78,26 @@ export function LoginCard({ mode = "google" }) {
 
     setIsLoading(true);
     try {
+      // Generate reCAPTCHA token
+      if (executeRecaptcha) {
+        const token = await executeRecaptcha("email_login");
+        
+        // Verify token with backend
+        const verifyResponse = await fetch("/api/verify-captcha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        const verifyData = await verifyResponse.json();
+
+        if (!verifyData.success) {
+          setEmailError("reCAPTCHA verification failed. Please try again.");
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const result = await signIn("credentials", {
         email,
         password,
