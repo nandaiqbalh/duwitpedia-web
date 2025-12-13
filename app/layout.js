@@ -25,10 +25,8 @@ export default function RootLayout({ children }) {
       >
         <Providers>
           <QueryProvider>
-            <RecaptchaProvider>
-              {children}
-              <Toaster position="top-right" richColors />
-            </RecaptchaProvider>
+            {children}
+            <Toaster position="top-right" richColors />
           </QueryProvider>
         </Providers>
       </body>
