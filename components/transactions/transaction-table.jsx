@@ -51,8 +51,21 @@ export function TransactionTable({
       }
       // Handle numeric comparison
       else if (sortColumn === 'amount') {
-        aValue = parseFloat(aValue) || 0;
-        bValue = parseFloat(bValue) || 0;
+        let rawAmountA = parseFloat(aValue) || 0;
+        let rawAmountB = parseFloat(bValue) || 0;
+        
+        // Apply sign based on transaction type for proper sorting
+        if (a.type === 'expense') {
+          aValue = -Math.abs(rawAmountA);
+        } else {
+          aValue = Math.abs(rawAmountA);
+        }
+        
+        if (b.type === 'expense') {
+          bValue = -Math.abs(rawAmountB);
+        } else {
+          bValue = Math.abs(rawAmountB);
+        }
       }
       // Handle string comparison (case-insensitive)
       else if (typeof aValue === 'string') {
