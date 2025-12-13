@@ -304,7 +304,7 @@ export async function POST(request) {
         note: note || null,
         date: new Date(date),
         isAdminFee: false,
-        adminFeeAmount: hasAdminFee ? parseFloat(adminFeeAmount) : null,
+        adminFeeAmount: hasAdminFee ? adminFeeAmountNum : null,
       },
       include: {
         account: {
