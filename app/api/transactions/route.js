@@ -154,12 +154,21 @@ export async function POST(request) {
       );
     }
 
-    // Validate admin fee
-    if (hasAdminFee && (!adminFeeAmount || parseFloat(adminFeeAmount) <= 0)) {
-      return NextResponse.json(
-        { error: 'Admin fee amount is required and must be positive when admin fee is enabled' },
-        { status: 400 }
-      );
+    // Validate admin fee amount format
+    if (hasAdminFee) {
+      if (!adminFeeAmount) {
+        return NextResponse.json(
+          { error: 'Admin fee amount is required when admin fee is enabled' },
+          { status: 400 }
+        );
+      }
+      const adminFeeNum = parseFloat(adminFeeAmount);
+      if (isNaN(adminFeeNum) || adminFeeNum <= 0) {
+        return NextResponse.json(
+          { error: 'Admin fee amount must be a positive number' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate transaction type
@@ -197,11 +206,14 @@ export async function POST(request) {
     }
 
     // Validate admin fee doesn't exceed transaction amount
-    if (hasAdminFee && parseFloat(adminFeeAmount) > amountNum) {
-      return NextResponse.json(
-        { error: 'Admin fee amount cannot exceed transaction amount' },
-        { status: 400 }
-      );
+    if (hasAdminFee) {
+      const adminFeeNum = parseFloat(adminFeeAmount);
+      if (adminFeeNum > amountNum) {
+        return NextResponse.json(
+          { error: 'Admin fee amount cannot exceed transaction amount' },
+          { status: 400 }
+        );
+      }
     }
 
     // Verify account belongs to user
