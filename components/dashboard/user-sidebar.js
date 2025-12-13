@@ -213,6 +213,7 @@ export function UserSidebar({ isOpen, onClose }) {
                   onClick={() => {
                     setComingSoonFeature(item.name);
                     setShowComingSoon(true);
+                    onClose?.();
                   }}
                   className="cursor-pointer group relative p-1 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
                   aria-label="Show information"
