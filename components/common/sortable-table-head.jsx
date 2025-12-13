@@ -87,7 +87,11 @@ export function useSortableTable(data, defaultColumn = 'date', defaultDirection 
       let bValue = getValue(b, sortColumn);
 
       // Handle date comparison
-      if (sortColumn === 'date' || sortColumn.includes('Date')) {
+      if (
+        sortColumn === 'date' ||
+        sortColumn.includes('Date') ||
+        sortColumn.endsWith('At')
+      ) {
         aValue = new Date(aValue).getTime();
         bValue = new Date(bValue).getTime();
       }
