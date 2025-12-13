@@ -2,7 +2,6 @@ import { config } from 'dotenv';
 import { PrismaClient } from '../lib/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
-import bcrypt from 'bcryptjs';
 
 // Load environment variables
 config({ path: '.env.local' });
