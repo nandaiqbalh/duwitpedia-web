@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { LoadingState, EmptyState, ErrorState, SortableTableHead } from '@/components/common';
+import { LoadingState, EmptyState, SortableTableHead } from '@/components/common';
 import { formatDateWIB } from '@/lib/utils';
 import { TransactionTypeBadge } from '@/components/transactions/badge-transaction';
 
