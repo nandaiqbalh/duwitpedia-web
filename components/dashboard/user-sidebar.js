@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Wallet, CreditCard, PieChart, Settings, LogOut, FolderOpen, X, ChevronDown, ChevronRight, Tag, DollarSign, Target, Brain, Stars, BookOpen, Info } from "lucide-react";
+import { Home, Wallet, CreditCard, PieChart, Settings, LogOut, FolderOpen, X, ChevronDown, ChevronRight, Tag, Target, Stars, BookOpen, Info } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
