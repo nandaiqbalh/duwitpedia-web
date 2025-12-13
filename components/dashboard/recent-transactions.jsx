@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Receipt, SearchX } from "lucide-react";
 import Link from "next/link";
-import { formatDateWIB } from "@/lib/utils";
+import { formatDateOnly } from "@/lib/utils";
 import { TransactionTypeBadge } from "@/components/transactions/badge-transaction";
 
 export function RecentTransactions({ transactions = [], formatCurrency }) {
@@ -39,7 +39,21 @@ export function RecentTransactions({ transactions = [], formatCurrency }) {
       </div>
 
       <div className="space-y-2">
-        {transactions.slice(0, 5).map((transaction, index) => {
+        {transactions
+          .sort((a, b) => {
+            // Sort by date descending (newest first)
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            if (dateA !== dateB) {
+              return dateB - dateA;
+            }
+            // If dates are equal, sort by createdAt descending (newest first)
+            const createdA = new Date(a.createdAt).getTime();
+            const createdB = new Date(b.createdAt).getTime();
+            return createdB - createdA;
+          })
+          .slice(0, 5)
+          .map((transaction, index) => {
           const normalizedType = transaction.type?.toLowerCase();
           const amountColor = normalizedType === 'income' 
             ? 'text-green-600' 
@@ -60,7 +74,7 @@ export function RecentTransactions({ transactions = [], formatCurrency }) {
                   <TransactionTypeBadge type={transaction.type} className="text-xs capitalize" />
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span>{formatDateWIB(transaction.date)}</span>
+                  <span>{formatDateOnly(transaction.date)}</span>
                   <span>•</span>
                   <span className="truncate">
                     {normalizedType === 'transfer' && transaction.toWallet 
@@ -77,12 +91,6 @@ export function RecentTransactions({ transactions = [], formatCurrency }) {
           );
         })}
       </div>
-      
-      {transactions.length > 5 && (
-        <div className="mt-3 pt-3 border-t text-center text-xs text-gray-500">
-          Showing 5 of {transactions.length} transactions
-        </div>
-      )}
     </Card>
   );
 }
