@@ -18,9 +18,14 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log('🌱 Starting seeding...');
 
+  const demoUserEmail = process.env.DEMO_USER_EMAIL;
+  if (!demoUserEmail) {
+    throw new Error('Environment variable DEMO_USER_EMAIL is not set.');
+  }
+
   // Delete existing data for demo user if exists
   const existingUser = await prisma.user.findUnique({
-    where: { email: 'nandaiqbalhanafii@gmail.com' },
+    where: { email: demoUserEmail },
   });
 
   if (existingUser) {
