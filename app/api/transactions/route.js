@@ -162,14 +162,6 @@ export async function POST(request) {
       );
     }
 
-    // Validate admin fee doesn't exceed transaction amount
-    if (hasAdminFee && parseFloat(adminFeeAmount) > parseFloat(amount)) {
-      return NextResponse.json(
-        { error: 'Admin fee amount cannot exceed transaction amount' },
-        { status: 400 }
-      );
-    }
-
     // Validate transaction type
     if (!['income', 'expense', 'transfer'].includes(type)) {
       return NextResponse.json(
@@ -200,6 +192,14 @@ export async function POST(request) {
     if (isNaN(amountNum) || amountNum <= 0) {
       return NextResponse.json(
         { error: 'Amount must be a positive number' },
+        { status: 400 }
+      );
+    }
+
+    // Validate admin fee doesn't exceed transaction amount
+    if (hasAdminFee && parseFloat(adminFeeAmount) > amountNum) {
+      return NextResponse.json(
+        { error: 'Admin fee amount cannot exceed transaction amount' },
         { status: 400 }
       );
     }
