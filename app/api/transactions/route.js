@@ -154,12 +154,22 @@ export async function POST(request) {
       );
     }
 
-    // Validate admin fee
-    if (hasAdminFee && (!adminFeeAmount || parseFloat(adminFeeAmount) <= 0)) {
-      return NextResponse.json(
-        { error: 'Admin fee amount is required and must be positive when admin fee is enabled' },
-        { status: 400 }
-      );
+    // Validate admin fee amount format
+    let adminFeeAmountNum = 0;
+    if (hasAdminFee) {
+      if (!adminFeeAmount) {
+        return NextResponse.json(
+          { error: 'Admin fee amount is required when admin fee is enabled' },
+          { status: 400 }
+        );
+      }
+      adminFeeAmountNum = parseFloat(adminFeeAmount);
+      if (isNaN(adminFeeAmountNum) || adminFeeAmountNum <= 0) {
+        return NextResponse.json(
+          { error: 'Admin fee amount must be a positive number' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate transaction type
@@ -192,6 +202,14 @@ export async function POST(request) {
     if (isNaN(amountNum) || amountNum <= 0) {
       return NextResponse.json(
         { error: 'Amount must be a positive number' },
+        { status: 400 }
+      );
+    }
+
+    // Validate admin fee doesn't exceed transaction amount
+    if (hasAdminFee && adminFeeAmountNum > amountNum) {
+      return NextResponse.json(
+        { error: 'Admin fee amount cannot exceed transaction amount' },
         { status: 400 }
       );
     }
@@ -286,7 +304,7 @@ export async function POST(request) {
         note: note || null,
         date: new Date(date),
         isAdminFee: false,
-        adminFeeAmount: hasAdminFee ? parseFloat(adminFeeAmount) : null,
+        adminFeeAmount: hasAdminFee ? adminFeeAmountNum : null,
       },
       include: {
         account: {
@@ -322,8 +340,7 @@ export async function POST(request) {
     await handleTransactionCreate(transaction);
 
     // Create admin fee child transaction if hasAdminFee is true
-    if (hasAdminFee && adminFeeAmount) {
-      const adminFeeAmountNum = parseFloat(adminFeeAmount);
+    if (hasAdminFee) {
       
       // Find or create "Admin Fee" category (expense type)
       let adminFeeCategory = await prisma.category.findFirst({
