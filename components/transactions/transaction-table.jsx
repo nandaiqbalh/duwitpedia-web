@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit, Trash2, Wallet } from 'lucide-react';
+import { Edit2, Trash2, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -125,9 +125,9 @@ export function TransactionTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(transaction)}
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit2 className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
