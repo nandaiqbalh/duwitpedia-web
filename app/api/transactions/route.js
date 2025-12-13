@@ -340,7 +340,7 @@ export async function POST(request) {
     await handleTransactionCreate(transaction);
 
     // Create admin fee child transaction if hasAdminFee is true
-    if (hasAdminFee && adminFeeAmount) {
+    if (hasAdminFee) {
       
       // Find or create "Admin Fee" category (expense type)
       let adminFeeCategory = await prisma.category.findFirst({
