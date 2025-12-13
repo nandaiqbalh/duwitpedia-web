@@ -435,7 +435,7 @@ export function TransactionFormDialog({
                     <p className="text-sm text-red-500">{errors.adminFeeAmount.message}</p>
                   )}
                   <p className="text-xs text-gray-600">
-                    Admin fee will be recorded as a separate expense transaction.
+                    Admin fee will be recorded as a separate expense transaction, which will be automatically linked to this transaction and categorized under an auto-created "Admin Fee" category.
                   </p>
                 </div>
               )}
