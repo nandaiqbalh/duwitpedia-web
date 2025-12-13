@@ -162,6 +162,18 @@ export async function POST(request) {
       );
     }
 
+    // Validate admin fee doesn't exceed transaction amount
+    if (hasAdminFee && adminFeeAmount && amount) {
+      const adminFeeNum = parseFloat(adminFeeAmount);
+      const amountNum = parseFloat(amount);
+      if (!isNaN(adminFeeNum) && !isNaN(amountNum) && adminFeeNum > amountNum) {
+        return NextResponse.json(
+          { error: 'Admin fee amount cannot exceed transaction amount' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Validate transaction type
     if (!['income', 'expense', 'transfer'].includes(type)) {
       return NextResponse.json(
