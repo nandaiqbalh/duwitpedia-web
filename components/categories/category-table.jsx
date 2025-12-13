@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { Edit2, SearchX, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,11 +11,51 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { LoadingState, EmptyState, ErrorState } from '@/components/common';
+import { LoadingState, EmptyState, ErrorState, SortableTableHead } from '@/components/common';
 import { formatDateWIB } from '@/lib/utils';
 import { TransactionTypeBadge } from '@/components/transactions/badge-transaction';
 
 export function CategoryTable({ categories, onEdit, onDelete, loading, currentPage = 1, itemsPerPage = 10 }) {
+  const [sortColumn, setSortColumn] = useState('createdAt');
+  const [sortDirection, setSortDirection] = useState('desc');
+
+  // Sort categories
+  const sortedCategories = useMemo(() => {
+    if (!categories?.length) return categories;
+
+    return [...categories].sort((a, b) => {
+      const getValue = (obj, path) => {
+        return path.split('.').reduce((acc, part) => acc?.[part], obj);
+      };
+
+      let aValue = getValue(a, sortColumn);
+      let bValue = getValue(b, sortColumn);
+
+      // Handle date comparison
+      if (sortColumn.includes('At')) {
+        aValue = new Date(aValue).getTime();
+        bValue = new Date(bValue).getTime();
+      }
+      // Handle string comparison (case-insensitive)
+      else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = (bValue || '').toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [categories, sortColumn, sortDirection]);
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('desc');
+    }
+  };
   if (loading) {
     return <LoadingState message="Loading categories..." />;
   }
@@ -35,15 +76,39 @@ export function CategoryTable({ categories, onEdit, onDelete, loading, currentPa
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]">No</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Updated</TableHead>
+            <SortableTableHead
+              column="name"
+              label="Name"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              column="type"
+              label="Type"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              column="createdAt"
+              label="Created"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              column="updatedAt"
+              label="Updated"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
             <TableHead className="text-right w-[120px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {categories.map((category, index) => {
+          {sortedCategories.map((category, index) => {
             const itemNumber = (currentPage - 1) * itemsPerPage + index + 1;
             return (
             <TableRow key={category.id}>
