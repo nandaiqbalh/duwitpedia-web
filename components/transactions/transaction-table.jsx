@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit, Trash2, ArrowUpCircle, ArrowDownCircle, ArrowRightLeft, Wallet } from 'lucide-react';
+import { Edit, Trash2, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,8 +12,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { LoadingState, EmptyState } from '@/components/common';
-import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
+import { formatCurrency } from '@/lib/utils/numberFormat';
+import { formatDate } from '@/lib/utils/dateFormat';
+import { TransactionTypeBadge, getCategoryTypeColor } from './badge-transaction';
 
 export function TransactionTable({
   transactions = [],
@@ -36,58 +37,6 @@ export function TransactionTable({
       />
     );
   }
-
-  const formatCurrency = (amount, currency = 'IDR') => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (date) => {
-    return format(new Date(date), 'dd MMM yyyy', { locale: idLocale });
-  };
-
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'income':
-        return <ArrowUpCircle className="w-4 h-4" />;
-      case 'expense':
-        return <ArrowDownCircle className="w-4 h-4" />;
-      case 'transfer':
-        return <ArrowRightLeft className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
-
-  const getTypeBadgeVariant = (type) => {
-    switch (type) {
-      case 'income':
-        return 'default';
-      case 'expense':
-        return 'destructive';
-      case 'transfer':
-        return 'secondary';
-      default:
-        return 'default';
-    }
-  };
-
-  const getTypeBadgeClass = (type) => {
-    switch (type) {
-      case 'income':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'expense':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'transfer':
-        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      default:
-        return '';
-    }
-  };
 
   return (
     <div className="rounded-md border">
@@ -113,14 +62,11 @@ export function TransactionTable({
               </TableCell>
               <TableCell>{formatDate(transaction.date)}</TableCell>
               <TableCell>
-                <Badge className={`gap-1 ${getTypeBadgeClass(transaction.type)}`}>
-                  {getTypeIcon(transaction.type)}
-                  {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                </Badge>
+                <TransactionTypeBadge type={transaction.type} />
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${transaction.category.type === 'income' ? 'bg-green-500' : transaction.category.type === 'expense' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
+                  <div className={`w-2 h-2 rounded-full ${getCategoryTypeColor(transaction.category.type)}`}></div>
                   {transaction.category.name}
                 </div>
               </TableCell>

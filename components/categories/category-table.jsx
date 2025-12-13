@@ -2,7 +2,6 @@
 
 import { Edit2, SearchX, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -13,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { LoadingState, EmptyState, ErrorState } from '@/components/common';
 import { formatDateWIB } from '@/lib/utils';
+import { TransactionTypeBadge } from '@/components/transactions/badge-transaction';
 
 export function CategoryTable({ categories, onEdit, onDelete, loading, currentPage = 1, itemsPerPage = 10 }) {
   if (loading) {
@@ -52,18 +52,7 @@ export function CategoryTable({ categories, onEdit, onDelete, loading, currentPa
                 <div className="font-medium text-gray-900">{category.name}</div>
               </TableCell>
               <TableCell>
-                <Badge
-                  variant={category.type === 'income' ? 'default' : 'secondary'}
-                  className={
-                    category.type === 'income'
-                      ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                      : category.type === 'expense'
-                        ? 'bg-red-100 text-red-800 hover:bg-red-100'
-                        : 'bg-blue-100 text-blue-800 hover:bg-blue-100'
-                  }
-                >
-                  {category.type === 'income' ? 'Income' : category.type === 'expense' ? 'Expense' : 'Transfer'}
-                </Badge>
+                <TransactionTypeBadge type={category.type} />
               </TableCell>
               <TableCell>
                 <div className="text-sm text-gray-600">
