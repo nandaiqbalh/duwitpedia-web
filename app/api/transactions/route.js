@@ -27,8 +27,9 @@ export async function GET(request) {
     const categoryId = searchParams.get('categoryId') || '';
     const startDate = searchParams.get('startDate') || '';
     const endDate = searchParams.get('endDate') || '';
+    const showAdminFee = searchParams.get('showAdminFee') === 'true';
 
-    console.log('Transaction filters received:', { page, limit, search, type, accountId, walletId, categoryId, startDate, endDate });
+    console.log('Transaction filters received:', { page, limit, search, type, accountId, walletId, categoryId, startDate, endDate, showAdminFee });
 
     const skip = (page - 1) * limit;
 
@@ -36,6 +37,8 @@ export async function GET(request) {
     const where = {
       userId: session.user.id,
       deletedAt: null,
+      // Filter admin fee transactions based on showAdminFee parameter
+      ...(showAdminFee ? { isAdminFee: true } : { isAdminFee: false }),
       ...(search && {
         OR: [
           { note: { contains: search, mode: 'insensitive' } },
@@ -88,10 +91,21 @@ export async function GET(request) {
               type: true,
             },
           },
+          adminFeeChild: {
+            select: {
+              id: true,
+              amount: true,
+            },
+          },
         },
-        orderBy: {
-          date: 'desc',
-        },
+        orderBy: [
+          {
+            date: 'desc',
+          },
+          {
+            createdAt: 'desc',
+          },
+        ],
         skip,
         take: limit,
       }),
@@ -130,7 +144,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { accountId, walletId, toAccountId, toWalletId, categoryId, amount, type, note, date } = body;
+    const { accountId, walletId, toAccountId, toWalletId, categoryId, amount, type, note, date, hasAdminFee, adminFeeAmount } = body;
 
     // Validate required fields
     if (!accountId || !walletId || !categoryId || !amount || !type || !date) {
@@ -138,6 +152,24 @@ export async function POST(request) {
         { error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // Validate admin fee amount format
+    let adminFeeAmountNum = 0;
+    if (hasAdminFee) {
+      if (!adminFeeAmount) {
+        return NextResponse.json(
+          { error: 'Admin fee amount is required when admin fee is enabled' },
+          { status: 400 }
+        );
+      }
+      adminFeeAmountNum = parseFloat(adminFeeAmount);
+      if (isNaN(adminFeeAmountNum) || adminFeeAmountNum <= 0) {
+        return NextResponse.json(
+          { error: 'Admin fee amount must be a positive number' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate transaction type
@@ -170,6 +202,14 @@ export async function POST(request) {
     if (isNaN(amountNum) || amountNum <= 0) {
       return NextResponse.json(
         { error: 'Amount must be a positive number' },
+        { status: 400 }
+      );
+    }
+
+    // Validate admin fee doesn't exceed transaction amount
+    if (hasAdminFee && adminFeeAmountNum > amountNum) {
+      return NextResponse.json(
+        { error: 'Admin fee amount cannot exceed transaction amount' },
         { status: 400 }
       );
     }
@@ -250,7 +290,7 @@ export async function POST(request) {
       );
     }
 
-    // Create transaction
+    // Create parent transaction
     const transaction = await prisma.transaction.create({
       data: {
         userId: session.user.id,
@@ -263,6 +303,8 @@ export async function POST(request) {
         type,
         note: note || null,
         date: new Date(date),
+        isAdminFee: false,
+        adminFeeAmount: hasAdminFee ? adminFeeAmountNum : null,
       },
       include: {
         account: {
@@ -294,8 +336,51 @@ export async function POST(request) {
       },
     });
 
-    // Update wallet and account balances
+    // Update wallet and account balances for parent transaction
     await handleTransactionCreate(transaction);
+
+    // Create admin fee child transaction if hasAdminFee is true
+    if (hasAdminFee) {
+      
+      // Find or create "Admin Fee" category (expense type)
+      let adminFeeCategory = await prisma.category.findFirst({
+        where: {
+          userId: session.user.id,
+          name: 'Admin Fee',
+          type: 'expense',
+          deletedAt: null,
+        },
+      });
+
+      if (!adminFeeCategory) {
+        adminFeeCategory = await prisma.category.create({
+          data: {
+            userId: session.user.id,
+            name: 'Admin Fee',
+            type: 'expense',
+          },
+        });
+      }
+
+      // Create admin fee transaction (always expense)
+      const adminFeeTransaction = await prisma.transaction.create({
+        data: {
+          userId: session.user.id,
+          accountId,
+          walletId,
+          categoryId: adminFeeCategory.id,
+          amount: adminFeeAmountNum,
+          type: 'expense',
+          note: `Admin fee for transaction: ${note || 'Transaction'}`,
+          date: new Date(date),
+          isAdminFee: true,
+          parentId: transaction.id,
+        },
+      });
+
+      // Update wallet and account balances for admin fee transaction
+      await handleTransactionCreate(adminFeeTransaction);
+    }
 
     return NextResponse.json({
       success: true,

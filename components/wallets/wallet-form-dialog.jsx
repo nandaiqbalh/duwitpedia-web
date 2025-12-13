@@ -33,7 +33,8 @@ export function WalletFormDialog({
   onSubmit,
   initialData = null,
   loading = false,
-  accounts = []
+  accounts = [],
+  isCreatingFromTransaction = false
 }) {
   const {
     register,
@@ -56,13 +57,23 @@ export function WalletFormDialog({
   // Reset form when dialog opens/closes or initialData changes
   useEffect(() => {
     if (isOpen) {
-      reset({
-        name: initialData?.name || '',
-        accountId: initialData?.accountId || '',
-        initialBalance: initialData?.balance?.toString() || '0',
-      });
+      if (isCreatingFromTransaction) {
+        // When creating from transaction, only pre-fill accountId, clear name
+        reset({
+          name: '',
+          accountId: initialData?.accountId || '',
+          initialBalance: '0',
+        });
+      } else {
+        // When editing, populate all fields
+        reset({
+          name: initialData?.name || '',
+          accountId: initialData?.accountId || '',
+          initialBalance: initialData?.balance?.toString() || '0',
+        });
+      }
     }
-  }, [isOpen, initialData, reset]);
+  }, [isOpen, initialData, reset, isCreatingFromTransaction]);
 
   const handleFormSubmit = (data) => {
     onSubmit(data);
@@ -74,10 +85,10 @@ export function WalletFormDialog({
 
         <DialogHeader>
           <DialogTitle>
-            {initialData ? 'Edit Wallet' : 'Create New Wallet'}
+            {(initialData && !isCreatingFromTransaction) ? 'Edit Wallet' : 'Create New Wallet'}
           </DialogTitle>
           <DialogDescription>
-            {initialData
+            {(initialData && !isCreatingFromTransaction)
               ? 'Update the wallet details below.'
               : 'Create a new wallet to represent where your money is stored, such as a bank account, e-wallet, or cash.'
             }
@@ -178,7 +189,7 @@ export function WalletFormDialog({
                   Saving...
                 </span>
               ) : (
-                <span>{initialData ? 'Update' : 'Create'}</span>
+                <span>{(initialData && !isCreatingFromTransaction) ? 'Update' : 'Create'}</span>
               )}
             </Button>
           </DialogFooter>

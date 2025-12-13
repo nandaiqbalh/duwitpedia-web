@@ -1,8 +1,8 @@
 'use client';
 
-import { Edit, Trash2, ArrowUpCircle, ArrowDownCircle, ArrowRightLeft, Wallet } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Edit2, Trash2, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -11,9 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { LoadingState, EmptyState } from '@/components/common';
-import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
+import { LoadingState, EmptyState, SortableTableHead } from '@/components/common';
+import { formatCurrency } from '@/lib/utils/numberFormat';
+import { formatDate } from '@/lib/utils/dateFormat';
+import { TransactionTypeBadge, getCategoryTypeColor } from './badge-transaction';
+
 
 export function TransactionTable({
   transactions = [],
@@ -22,7 +24,60 @@ export function TransactionTable({
   loading = false,
   currentPage = 1,
   pageSize = 10,
+  onSort,
 }) {
+  const [sortColumn, setSortColumn] = useState('date');
+  const [sortDirection, setSortDirection] = useState('desc');
+
+  // Sort transactions based on current sort settings
+  const sortedTransactions = useMemo(() => {
+    if (!transactions.length) return transactions;
+
+    return [...transactions].sort((a, b) => {
+      let aValue, bValue;
+
+      // Handle nested properties (e.g., 'category.name', 'account.name')
+      const getValue = (obj, path) => {
+        return path.split('.').reduce((acc, part) => acc?.[part], obj);
+      };
+
+      aValue = getValue(a, sortColumn);
+      bValue = getValue(b, sortColumn);
+
+      // Handle date comparison
+      if (sortColumn === 'date') {
+        aValue = new Date(aValue).getTime();
+        bValue = new Date(bValue).getTime();
+      }
+      // Handle numeric comparison
+      else if (sortColumn === 'amount') {
+        aValue = parseFloat(aValue) || 0;
+        bValue = parseFloat(bValue) || 0;
+      }
+      // Handle string comparison (case-insensitive)
+      else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = (bValue || '').toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [transactions, sortColumn, sortDirection]);
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      // Toggle direction if same column
+      const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+      setSortDirection(newDirection);
+    } else {
+      // New column, default to desc
+      setSortColumn(column);
+      setSortDirection('desc');
+    }
+  };
+
   if (loading) {
     return <LoadingState message="Loading transactions..." />;
   }
@@ -37,90 +92,73 @@ export function TransactionTable({
     );
   }
 
-  const formatCurrency = (amount, currency = 'IDR') => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (date) => {
-    return format(new Date(date), 'dd MMM yyyy', { locale: idLocale });
-  };
-
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'income':
-        return <ArrowUpCircle className="w-4 h-4" />;
-      case 'expense':
-        return <ArrowDownCircle className="w-4 h-4" />;
-      case 'transfer':
-        return <ArrowRightLeft className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
-
-  const getTypeBadgeVariant = (type) => {
-    switch (type) {
-      case 'income':
-        return 'default';
-      case 'expense':
-        return 'destructive';
-      case 'transfer':
-        return 'secondary';
-      default:
-        return 'default';
-    }
-  };
-
-  const getTypeBadgeClass = (type) => {
-    switch (type) {
-      case 'income':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'expense':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'transfer':
-        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      default:
-        return '';
-    }
-  };
-
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[60px]">No</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Account</TableHead>
-            <TableHead>Wallet</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
+            <SortableTableHead
+              column="date"
+              label="Date"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              column="type"
+              label="Type"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              column="category.name"
+              label="Category"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              column="account.name"
+              label="Account"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              column="wallet.name"
+              label="Wallet"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              column="amount"
+              label="Amount"
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              className="text-right"
+              align="right"
+            />
             <TableHead>Note</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {transactions.map((transaction, index) => (
+          {sortedTransactions.map((transaction, index) => (
             <TableRow key={transaction.id}>
               <TableCell className="font-medium">
                 {(currentPage - 1) * pageSize + index + 1}
               </TableCell>
               <TableCell>{formatDate(transaction.date)}</TableCell>
               <TableCell>
-                <Badge className={`gap-1 ${getTypeBadgeClass(transaction.type)}`}>
-                  {getTypeIcon(transaction.type)}
-                  {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                </Badge>
+                <TransactionTypeBadge type={transaction.type} />
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${transaction.category.type === 'income' ? 'bg-green-500' : transaction.category.type === 'expense' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
+                  <div className={`w-2 h-2 rounded-full ${getCategoryTypeColor(transaction.category.type)}`}></div>
                   {transaction.category.name}
                 </div>
               </TableCell>
@@ -146,16 +184,23 @@ export function TransactionTable({
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <span className={`font-semibold ${
-                  transaction.type === 'income' 
-                    ? 'text-green-600' 
-                    : transaction.type === 'expense'
-                    ? 'text-red-600'
-                    : 'text-blue-600'
-                }`}>
-                  {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}
-                  {formatCurrency(transaction.amount, transaction.account.currency)}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`font-semibold ${
+                    transaction.type === 'income' 
+                      ? 'text-green-600' 
+                      : transaction.type === 'expense'
+                      ? 'text-red-600'
+                      : 'text-blue-600'
+                  }`}>
+                    {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}
+                    {formatCurrency(transaction.amount, transaction.account.currency)}
+                  </span>
+                  {transaction.adminFeeChild && transaction.adminFeeChild.length > 0 && (
+                    <span className="text-xs text-orange-600 bg-orange-50 px-2 py-0.5 rounded">
+                      +{formatCurrency(transaction.adminFeeChild[0].amount, transaction.account.currency)} admin fee
+                    </span>
+                  )}
+                </div>
               </TableCell>
               <TableCell>
                 {transaction.note ? (
@@ -172,9 +217,9 @@ export function TransactionTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(transaction)}
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit2 className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"

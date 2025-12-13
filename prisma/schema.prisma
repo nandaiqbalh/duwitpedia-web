@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -10,9 +7,106 @@ datasource db {
   provider = "postgresql"
 }
 
-// ===========================
-// ENUMS
-// ===========================
+model User {
+  id             String        @id @default(cuid())
+  name           String?
+  email          String?       @unique
+  emailVerified  DateTime?
+  image          String?
+  password       String?
+  role           Role          @default(USER)
+  subscriptionId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
+  deletedAt      DateTime?
+  accounts       Account[]
+  categories     Category[]
+  transactions   Transaction[]
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  wallets        Wallet[]
+}
+
+model Account {
+  id           String        @id @default(cuid())
+  userId       String
+  name         String
+  currency     String        @default("IDR")
+  balance      Decimal       @default(0) @db.Decimal(15, 2)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  deletedAt    DateTime?
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  wallets      Wallet[]
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  subscriptionStatus SubscriptionStatus @default(PRO)
+  approvalStatus     ApprovalStatus     @default(ACTIVE)
+  subscriptionStart  DateTime?
+  subscriptionEnd    DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @default(now()) @updatedAt
+  deletedAt          DateTime?
+  users              User[]
+}
+
+model Wallet {
+  id               String        @id @default(cuid())
+  accountId        String
+  userId           String
+  name             String
+  balance          Decimal       @default(0) @db.Decimal(15, 2)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now()) @updatedAt
+  deletedAt        DateTime?
+  transactionsTo   Transaction[] @relation("toWallet")
+  transactionsFrom Transaction[] @relation("fromWallet")
+  account          Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  userId       String
+  name         String
+  type         CategoryType
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  deletedAt    DateTime?
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  accountId   String
+  walletId    String
+  toAccountId String?
+  toWalletId  String?
+  categoryId  String
+  userId      String
+  amount      Decimal         @db.Decimal(10, 2)
+  type        TransactionType
+  note        String?
+  date        DateTime
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+  deletedAt   DateTime?
+  account     Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category    Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  toWallet    Wallet?         @relation("toWallet", fields: [toWalletId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet      Wallet          @relation("fromWallet", fields: [walletId], references: [id], onDelete: Cascade)
+  // Admin fee fields
+  parentId       String?         @db.Text
+  parent         Transaction?    @relation("AdminFeeRelation", fields: [parentId], references: [id], onDelete: Cascade)
+  isAdminFee     Boolean         @default(false)
+  adminFeeAmount Decimal?        @db.Decimal(10, 2)
+  adminFeeChild  Transaction[]   @relation("AdminFeeRelation")
+}
+
 enum Role {
   ADMIN
   USER
@@ -40,124 +134,4 @@ enum ApprovalStatus {
   ACTIVE
   EXPIRED
   REJECTED
-}
-
-
-// ===========================
-// NEXTAUTH MODELS
-// ===========================
-
-model User {
-  id              String           @id @default(cuid())
-  name            String?
-  email           String?          @unique
-  emailVerified   DateTime?
-  image           String?
-  password        String?          // For email/password authentication
-  role            Role             @default(USER)
-  subscriptionId  String?
-  
-  subscription    Subscription?    @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-
-  // For Duwitpedia app
-  accounts        Account[]
-  wallets         Wallet[]
-  categories      Category[]
-  transactions    Transaction[]
-
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt @default(now())
-  deletedAt       DateTime?
-}
-
-model Account {
-  id          String          @id @default(cuid())
-  userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  name        String
-  currency    String          @default("IDR")
-  balance     Decimal         @default(0) @db.Decimal(15, 2)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt @default(now())
-  deletedAt   DateTime?
-
-  wallets      Wallet[]
-  transactions Transaction[]
-}
-
-model Subscription {
-  id                String           @id @default(cuid())
-  users             User[]
-
-  subscriptionStatus SubscriptionStatus @default(PRO)
-  approvalStatus     ApprovalStatus     @default(ACTIVE)
-  
-  subscriptionStart  DateTime?
-  subscriptionEnd    DateTime?
-  
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt @default(now())
-  deletedAt         DateTime?
-}
-
-
-// ===========================
-// DUWITPEDIA MODELS
-// ===========================
-
-model Wallet {
-  id          String        @id @default(cuid())
-  accountId   String
-  userId      String
-  
-  account     Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  name        String
-  balance     Decimal       @default(0) @db.Decimal(15, 2)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt @default(now())
-  deletedAt   DateTime?
-
-  transactionsFrom Transaction[] @relation("fromWallet")
-  transactionsTo   Transaction[] @relation("toWallet")
-}
-
-model Category {
-  id          String       @id @default(cuid())
-  userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  name        String
-  type        CategoryType
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt @default(now())
-  deletedAt   DateTime?
-
-  transactions Transaction[]
-}
-
-model Transaction {
-  id          String           @id @default(cuid())
-  accountId   String
-  walletId    String
-  toAccountId String?
-  toWalletId  String?
-  categoryId  String
-  userId      String
-
-  account     Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  wallet      Wallet           @relation(fields: [walletId], references: [id], onDelete: Cascade, name: "fromWallet")
-  toWallet    Wallet?          @relation(fields: [toWalletId], references: [id], onDelete: Cascade, name: "toWallet")
-  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  amount      Decimal          @db.Decimal(10, 2)
-  type        TransactionType
-  note        String?
-  date        DateTime
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt @default(now())
-  deletedAt   DateTime?
 }

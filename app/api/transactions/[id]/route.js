@@ -325,6 +325,9 @@ export async function DELETE(request, { params }) {
         userId: session.user.id,
         deletedAt: null,
       },
+      include: {
+        adminFeeChild: true, // Include admin fee child transactions
+      },
     });
 
     if (!transaction) {
@@ -337,7 +340,24 @@ export async function DELETE(request, { params }) {
     // Update wallet and account balances before deletion
     await handleTransactionDelete(transaction);
 
-    // Soft delete transaction
+    // Check if transaction has admin fee child transactions
+    if (transaction.adminFeeChild && transaction.adminFeeChild.length > 0) {
+      // Delete all admin fee child transactions
+      for (const childTransaction of transaction.adminFeeChild) {
+        // Update balances for child transaction
+        await handleTransactionDelete(childTransaction);
+        
+        // Soft delete child transaction
+        await prisma.transaction.update({
+          where: { id: childTransaction.id },
+          data: {
+            deletedAt: new Date(),
+          },
+        });
+      }
+    }
+
+    // Soft delete parent transaction
     await prisma.transaction.update({
       where: { id },
       data: {

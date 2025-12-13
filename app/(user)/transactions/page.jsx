@@ -30,6 +30,7 @@ export default function TransactionsPage() {
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('categoryId') || '');
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
+  const [showAdminFeeFilter, setShowAdminFeeFilter] = useState(searchParams.get('showAdminFee') === 'true');
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
 
   const {
@@ -45,6 +46,7 @@ export default function TransactionsPage() {
     setWalletId,
     setCategoryId,
     setDateRange,
+    setShowAdminFee,
   } = useTransactions({
     page: currentPage,
     search: searchInput,
@@ -54,6 +56,7 @@ export default function TransactionsPage() {
     categoryId: categoryFilter,
     startDate,
     endDate,
+    showAdminFee: showAdminFeeFilter,
   });
 
   const {
@@ -97,6 +100,7 @@ export default function TransactionsPage() {
     setCategoryFilter(searchParams.get('categoryId') || '');
     setStartDate(searchParams.get('startDate') || '');
     setEndDate(searchParams.get('endDate') || '');
+    setShowAdminFeeFilter(searchParams.get('showAdminFee') === 'true');
     setCurrentPage(parseInt(searchParams.get('page') || '1'));
   }, [searchParams]);
 
@@ -153,6 +157,21 @@ export default function TransactionsPage() {
     setDateRange(startDate, endDate);
   };
 
+  const handleShowAdminFeeChange = (value) => {
+    setShowAdminFeeFilter(value);
+    
+    // Reset category filter when showing admin fee only
+    if (value) {
+      setCategoryFilter('');
+      updateURL({ showAdminFee: 'true', categoryId: '' });
+      setCategoryId('');
+    } else {
+      updateURL({ showAdminFee: '' });
+    }
+    
+    setShowAdminFee(value);
+  };
+
   const handleClearFilters = () => {
     setTypeFilter('');
     setAccountFilter('');
@@ -160,6 +179,7 @@ export default function TransactionsPage() {
     setCategoryFilter('');
     setStartDate('');
     setEndDate('');
+    setShowAdminFeeFilter(false);
     updateURL({
       type: '',
       accountId: '',
@@ -167,6 +187,7 @@ export default function TransactionsPage() {
       categoryId: '',
       startDate: '',
       endDate: '',
+      showAdminFee: '',
       search: searchInput, // Keep search
     });
     setType('');
@@ -174,6 +195,7 @@ export default function TransactionsPage() {
     setWalletId('');
     setCategoryId('');
     setDateRange('', '');
+    setShowAdminFee(false);
   };
 
   const handleCreate = () => {
@@ -233,7 +255,7 @@ export default function TransactionsPage() {
     setPage(page);
   };
 
-  const activeFiltersCount = [typeFilter, accountFilter, walletFilter, categoryFilter, startDate, endDate].filter(Boolean).length;
+  const activeFiltersCount = [typeFilter, accountFilter, walletFilter, categoryFilter, startDate, endDate, showAdminFeeFilter].filter(Boolean).length;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -299,12 +321,14 @@ export default function TransactionsPage() {
         categoryFilter={categoryFilter}
         startDate={startDate}
         endDate={endDate}
+        showAdminFee={showAdminFeeFilter}
         onTypeFilterChange={handleTypeFilterChange}
         onAccountFilterChange={handleAccountFilterChange}
         onWalletFilterChange={handleWalletFilterChange}
         onCategoryFilterChange={handleCategoryFilterChange}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
+        onShowAdminFeeChange={handleShowAdminFeeChange}
         onClearFilters={handleClearFilters}
         accounts={accounts}
         wallets={wallets}

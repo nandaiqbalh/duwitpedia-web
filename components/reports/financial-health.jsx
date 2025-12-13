@@ -125,26 +125,28 @@ export function FinancialHealth({ financialHealth, summary, loading = false }) {
           <h3 className="text-lg font-semibold text-gray-900">Net Cash Flow</h3>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
+          <div className="flex-1">
             <p className="text-sm text-gray-600 mb-1">This period</p>
-            <p className={`text-3xl font-bold ${
+            <p className={`text-2xl sm:text-3xl font-bold ${
               financialHealth.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
               {formatCurrency(financialHealth.netCashFlow)}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600 mb-1">Total Income</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {formatCurrency(summary.totalIncome)}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600 mb-1">Total Expenses</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {formatCurrency(summary.totalExpense)}
-            </p>
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-4 sm:gap-6">
+            <div className="text-left sm:text-right">
+              <p className="text-sm text-gray-600 mb-1">Total Income</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {formatCurrency(summary.totalIncome)}
+              </p>
+            </div>
+            <div className="text-left sm:text-right">
+              <p className="text-sm text-gray-600 mb-1">Total Expenses</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {formatCurrency(summary.totalExpense)}
+              </p>
+            </div>
           </div>
         </div>
 

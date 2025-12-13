@@ -199,20 +199,20 @@ export default function ReportsPage() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-4 md:w-auto">
-          <TabsTrigger value="overview" className="flex items-center gap-2 px-2">
+        <TabsList className="grid grid-cols-4 w-full md:w-auto bg-blue-50 border border-blue-200">
+          <TabsTrigger value="overview" className="flex items-center gap-2 px-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-700 hover:bg-blue-100">
             <TrendingUp className="w-4 h-4" />
             <span className="hidden md:inline">Overview</span>
           </TabsTrigger>
-          <TabsTrigger value="health" className="flex items-center gap-2 px-2">
+          <TabsTrigger value="health" className="flex items-center gap-2 px-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-700 hover:bg-blue-100">
             <Activity className="w-4 h-4" />
             <span className="hidden md:inline">Health</span>
           </TabsTrigger>
-          <TabsTrigger value="categories" className="flex items-center gap-2 px-2">
+          <TabsTrigger value="categories" className="flex items-center gap-2 px-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-700 hover:bg-blue-100">
             <PieChart className="w-4 h-4" />
             <span className="hidden md:inline">Categories</span>
           </TabsTrigger>
-          <TabsTrigger value="wallets" className="flex items-center gap-2 px-2">
+          <TabsTrigger value="wallets" className="flex items-center gap-2 px-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-700 hover:bg-blue-100">
             <Wallet className="w-4 h-4" />
             <span className="hidden md:inline">Wallets</span>
           </TabsTrigger>

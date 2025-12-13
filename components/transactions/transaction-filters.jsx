@@ -26,6 +26,7 @@ export function TransactionFilters({
   categoryFilter,
   startDate,
   endDate,
+  showAdminFee,
 
   // Filter handlers
   onTypeFilterChange,
@@ -34,6 +35,7 @@ export function TransactionFilters({
   onCategoryFilterChange,
   onStartDateChange,
   onEndDateChange,
+  onShowAdminFeeChange,
   onClearFilters,
 
   // Data for dropdowns
@@ -227,6 +229,22 @@ export function TransactionFilters({
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            {/* Show Admin Fee Only */}
+            <div className="space-y-2 col-span-1 md:col-span-2">
+              <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <input
+                  id="showAdminFee"
+                  type="checkbox"
+                  checked={showAdminFee}
+                  onChange={(e) => onShowAdminFeeChange(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="showAdminFee" className="text-sm font-medium cursor-pointer">
+                  Show Admin Fee Transactions Only
+                </label>
+              </div>
             </div>
           </div>
         </div>

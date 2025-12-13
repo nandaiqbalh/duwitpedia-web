@@ -1,27 +1,13 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Receipt, SearchX } from "lucide-react";
 import Link from "next/link";
 import { formatDateWIB } from "@/lib/utils";
+import { TransactionTypeBadge } from "@/components/transactions/badge-transaction";
 
 export function RecentTransactions({ transactions = [], formatCurrency }) {
-  const getTypeColor = (type) => {
-    const normalizedType = type?.toLowerCase();
-    switch (normalizedType) {
-      case 'income':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'expense':
-        return 'bg-red-100 text-red-700 border-red-200';
-      case 'transfer':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
-
   if (transactions.length === 0) {
     return (
       <Card className="p-8 border-gray-200">
@@ -71,12 +57,7 @@ export function RecentTransactions({ transactions = [], formatCurrency }) {
                   <p className="text-sm font-medium text-gray-900 truncate">
                     {transaction.category?.name || 'Uncategorized'}
                   </p>
-                  <Badge 
-                    variant="outline" 
-                    className={`capitalize text-xs ${getTypeColor(transaction.type)}`}
-                  >
-                    {normalizedType}
-                  </Badge>
+                  <TransactionTypeBadge type={transaction.type} className="text-xs capitalize" />
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span>{formatDateWIB(transaction.date)}</span>
