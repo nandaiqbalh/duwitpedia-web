@@ -30,7 +30,9 @@ export function CategoryFormDialog({
   onClose,
   onSubmit,
   initialData = null,
-  loading = false
+  loading = false,
+  hideTypeSelector = false, // New prop to hide type selector when called from transaction form
+  isCreatingFromTransaction = false, // Flag to indicate creating from transaction form
 }) {
   const {
     register,
@@ -52,12 +54,21 @@ export function CategoryFormDialog({
   // Reset form when dialog opens/closes or initialData changes
   useEffect(() => {
     if (isOpen) {
-      reset({
-        name: initialData?.name || '',
-        type: initialData?.type || 'expense',
-      });
+      if (isCreatingFromTransaction) {
+        // When creating from transaction, only set type, clear name
+        reset({
+          name: '',
+          type: initialData?.type || 'expense',
+        });
+      } else {
+        // Normal edit mode
+        reset({
+          name: initialData?.name || '',
+          type: initialData?.type || 'expense',
+        });
+      }
     }
-  }, [isOpen, initialData, reset]);
+  }, [isOpen, initialData, isCreatingFromTransaction, reset]);
 
   const handleFormSubmit = (data) => {
     onSubmit(data);
@@ -68,10 +79,10 @@ export function CategoryFormDialog({
       <DialogContent className="sm:max-w-[425px] backdrop-blur-md">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? 'Edit Category' : 'Create New Category'}
+            {(initialData && !isCreatingFromTransaction) ? 'Edit Category' : 'Create New Category'}
           </DialogTitle>
           <DialogDescription>
-            {initialData
+            {(initialData && !isCreatingFromTransaction)
               ? 'Update your category information below.'
               : 'Add a new category to organize your transactions.'}
           </DialogDescription>
@@ -93,41 +104,61 @@ export function CategoryFormDialog({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="type">Category Type *</Label>
-            <Select
-              value={selectedType}
-              onValueChange={(value) => setValue('type', value)}
-              disabled={loading}
-            >
-              <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Select category type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="income">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    Income
-                  </div>
-                </SelectItem>
-                <SelectItem value="expense">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    Expense
-                  </div>
-                </SelectItem>
-                <SelectItem value="transfer">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    Transfer
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.type && (
-              <p className="text-sm text-red-500">{errors.type.message}</p>
-            )}
-          </div>
+          {!hideTypeSelector && (
+            <div className="space-y-2">
+              <Label htmlFor="type">Category Type *</Label>
+              <Select
+                value={selectedType}
+                onValueChange={(value) => setValue('type', value)}
+                disabled={loading}
+              >
+                <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Select category type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="income">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      Income
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="expense">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      Expense
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="transfer">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      Transfer
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.type && (
+                <p className="text-sm text-red-500">{errors.type.message}</p>
+              )}
+            </div>
+          )}
+          
+          {hideTypeSelector && (
+            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <p>
+                <strong>Category Type:</strong>{' '}
+                <span className="inline-flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${
+                    selectedType === 'income' ? 'bg-green-500' :
+                    selectedType === 'expense' ? 'bg-red-500' : 'bg-blue-500'
+                  }`}></span>
+                  {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}
+                </span>
+              </p>
+              <p className="text-xs mt-1">
+                Category type is automatically set based on your transaction type.
+              </p>
+            </div>
+          )}
 
           <DialogFooter>
             <Button
@@ -149,7 +180,7 @@ export function CategoryFormDialog({
                   Saving...
                 </span>
               ) : (
-                <span>{initialData ? 'Update' : 'Create'}</span>
+                <span>{(initialData && !isCreatingFromTransaction) ? 'Update' : 'Create'}</span>
               )}
             </Button>
           </DialogFooter>

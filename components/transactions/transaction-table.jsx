@@ -146,16 +146,23 @@ export function TransactionTable({
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <span className={`font-semibold ${
-                  transaction.type === 'income' 
-                    ? 'text-green-600' 
-                    : transaction.type === 'expense'
-                    ? 'text-red-600'
-                    : 'text-blue-600'
-                }`}>
-                  {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}
-                  {formatCurrency(transaction.amount, transaction.account.currency)}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`font-semibold ${
+                    transaction.type === 'income' 
+                      ? 'text-green-600' 
+                      : transaction.type === 'expense'
+                      ? 'text-red-600'
+                      : 'text-blue-600'
+                  }`}>
+                    {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}
+                    {formatCurrency(transaction.amount, transaction.account.currency)}
+                  </span>
+                  {transaction.adminFeeChild && transaction.adminFeeChild.length > 0 && (
+                    <span className="text-xs text-orange-600 bg-orange-50 px-2 py-0.5 rounded">
+                      +{formatCurrency(transaction.adminFeeChild[0].amount, transaction.account.currency)} admin fee
+                    </span>
+                  )}
+                </div>
               </TableCell>
               <TableCell>
                 {transaction.note ? (

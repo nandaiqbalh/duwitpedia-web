@@ -24,6 +24,7 @@ import { AccountFormDialog } from '@/components/accounts/account-form-dialog';
 import { WalletFormDialog } from '@/components/wallets/wallet-form-dialog';
 import { CategoryFormDialog } from '@/components/categories/category-form-dialog';
 import { transactionSchema } from '@/lib/validations/transaction.schema';
+import { formatNumber, parseFormattedNumber } from '@/lib/utils/numberFormat';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -53,6 +54,8 @@ export function TransactionFormDialog({
       type: 'expense',
       date: format(new Date(), 'yyyy-MM-dd'),
       note: '',
+      hasAdminFee: false,
+      adminFeeAmount: '',
     },
   });
 
@@ -63,11 +66,18 @@ export function TransactionFormDialog({
   const selectedToWalletId = watch('toWalletId');
   const selectedCategoryId = watch('categoryId');
   const selectedDate = watch('date');
+  const hasAdminFee = watch('hasAdminFee');
+  const amount = watch('amount');
+  const adminFeeAmount = watch('adminFeeAmount');
 
   // State for create dialogs
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [showWalletDialog, setShowWalletDialog] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  
+  // State for formatted display values
+  const [displayAmount, setDisplayAmount] = useState('');
+  const [displayAdminFee, setDisplayAdminFee] = useState('');
 
   // Get data from existing hooks
   const { accounts, loading: accountsLoading, refetch: refetchAccounts } = useAccounts();
@@ -113,6 +123,12 @@ export function TransactionFormDialog({
       setValue('type', initialData.type || 'expense');
       setValue('date', initialData.date ? format(new Date(initialData.date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
       setValue('note', initialData.note || '');
+      setValue('hasAdminFee', initialData.adminFeeAmount ? true : false);
+      setValue('adminFeeAmount', initialData.adminFeeAmount?.toString() || '');
+      
+      // Set display values with formatting
+      setDisplayAmount(formatNumber(initialData.amount?.toString() || ''));
+      setDisplayAdminFee(formatNumber(initialData.adminFeeAmount?.toString() || ''));
     } else if (!initialData && isOpen) {
       reset({
         accountId: '',
@@ -124,9 +140,27 @@ export function TransactionFormDialog({
         type: 'expense',
         date: format(new Date(), 'yyyy-MM-dd'),
         note: '',
+        hasAdminFee: false,
+        adminFeeAmount: '',
       });
+      setDisplayAmount('');
+      setDisplayAdminFee('');
     }
   }, [initialData, isOpen, setValue, reset]);
+
+  // Format amount display when amount changes
+  useEffect(() => {
+    if (amount) {
+      setDisplayAmount(formatNumber(amount));
+    }
+  }, [amount]);
+
+  // Format admin fee display when adminFeeAmount changes
+  useEffect(() => {
+    if (adminFeeAmount) {
+      setDisplayAdminFee(formatNumber(adminFeeAmount));
+    }
+  }, [adminFeeAmount]);
 
   // Reset walletId when account changes
   useEffect(() => {
@@ -326,10 +360,15 @@ export function TransactionFormDialog({
                 <Label htmlFor="amount">Amount *</Label>
                 <Input
                   id="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="e.g., 100000"
-                  {...register('amount')}
+                  type="text"
+                  placeholder="e.g., 100.000"
+                  value={displayAmount}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const parsed = parseFormattedNumber(value);
+                    setValue('amount', parsed);
+                    setDisplayAmount(formatNumber(parsed));
+                  }}
                   disabled={loading}
                   className={errors.amount ? 'border-red-500' : ''}
                 />
@@ -358,6 +397,47 @@ export function TransactionFormDialog({
               />
               {errors.note && (
                 <p className="text-sm text-red-500">{errors.note.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
+              <div className="flex items-center space-x-2">
+                <input
+                  id="hasAdminFee"
+                  type="checkbox"
+                  {...register('hasAdminFee')}
+                  disabled={loading}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <Label htmlFor="hasAdminFee" className="cursor-pointer">
+                  Has Admin Fee?
+                </Label>
+              </div>
+
+              {hasAdminFee && (
+                <div className="space-y-2 animate-in slide-in-from-top-2">
+                  <Label htmlFor="adminFeeAmount">Admin Fee Amount *</Label>
+                  <Input
+                    id="adminFeeAmount"
+                    type="text"
+                    placeholder="e.g., 6.500"
+                    value={displayAdminFee}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const parsed = parseFormattedNumber(value);
+                      setValue('adminFeeAmount', parsed);
+                      setDisplayAdminFee(formatNumber(parsed));
+                    }}
+                    disabled={loading}
+                    className={errors.adminFeeAmount ? 'border-red-500' : ''}
+                  />
+                  {errors.adminFeeAmount && (
+                    <p className="text-sm text-red-500">{errors.adminFeeAmount.message}</p>
+                  )}
+                  <p className="text-xs text-gray-600">
+                    Admin fee will be recorded as a separate expense transaction.
+                  </p>
+                </div>
               )}
             </div>
 
@@ -404,6 +484,7 @@ export function TransactionFormDialog({
           loading={creatingWallet}
           accounts={accounts}
           initialData={selectedAccountId ? { accountId: selectedAccountId } : null}
+          isCreatingFromTransaction={true}
         />
 
         <CategoryFormDialog
@@ -411,7 +492,9 @@ export function TransactionFormDialog({
           onClose={() => setShowCategoryDialog(false)}
           onSubmit={handleCreateCategory}
           loading={creatingCategory}
-          initialData={{ type: selectedType === 'transfer' ? 'expense' : selectedType }}
+          initialData={{ type: selectedType }}
+          hideTypeSelector={true}
+          isCreatingFromTransaction={true}
         />
       </div>
     </>
