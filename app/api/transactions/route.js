@@ -155,6 +155,7 @@ export async function POST(request) {
     }
 
     // Validate admin fee amount format
+    let adminFeeAmountNum = 0;
     if (hasAdminFee) {
       if (!adminFeeAmount) {
         return NextResponse.json(
@@ -162,8 +163,8 @@ export async function POST(request) {
           { status: 400 }
         );
       }
-      const adminFeeNum = parseFloat(adminFeeAmount);
-      if (isNaN(adminFeeNum) || adminFeeNum <= 0) {
+      adminFeeAmountNum = parseFloat(adminFeeAmount);
+      if (isNaN(adminFeeAmountNum) || adminFeeAmountNum <= 0) {
         return NextResponse.json(
           { error: 'Admin fee amount must be a positive number' },
           { status: 400 }
@@ -206,14 +207,11 @@ export async function POST(request) {
     }
 
     // Validate admin fee doesn't exceed transaction amount
-    if (hasAdminFee) {
-      const adminFeeNum = parseFloat(adminFeeAmount);
-      if (adminFeeNum > amountNum) {
-        return NextResponse.json(
-          { error: 'Admin fee amount cannot exceed transaction amount' },
-          { status: 400 }
-        );
-      }
+    if (hasAdminFee && adminFeeAmountNum > amountNum) {
+      return NextResponse.json(
+        { error: 'Admin fee amount cannot exceed transaction amount' },
+        { status: 400 }
+      );
     }
 
     // Verify account belongs to user
@@ -343,7 +341,6 @@ export async function POST(request) {
 
     // Create admin fee child transaction if hasAdminFee is true
     if (hasAdminFee && adminFeeAmount) {
-      const adminFeeAmountNum = parseFloat(adminFeeAmount);
       
       // Find or create "Admin Fee" category (expense type)
       let adminFeeCategory = await prisma.category.findFirst({
