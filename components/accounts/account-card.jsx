@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Gradient colors for cards
 const gradients = [
-    'bg-gradient-to-br from-green-500 via-green-600 to-emerald-700',
+  'bg-gradient-to-br from-green-500 via-green-600 to-emerald-700',
   'bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700',
   'bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600',
   'bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700',
@@ -67,7 +67,7 @@ export function AccountCard({ account, onEdit, onDelete, index = 0 }) {
               <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                 <CreditCard className="w-6 h-6" />
               </div>
-              <div className="max-w-32 sm:max-w-36 md:max-w-48 lg:max-w-64">
+              <div className="max-w-48 lg:max-w-64">
                 <h3 className="text-xl font-bold truncate">{account.name}</h3>
                 <p className="text-sm text-white/80">{account.type || 'Account'}</p>
               </div>
