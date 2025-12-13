@@ -8,6 +8,7 @@ import { LoginCard } from "@/components/login/login-card";
 import { LoginLoading } from "@/components/login/login-loading";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RecaptchaProvider } from "@/components/provider/recaptcha-provider";
 
 const errorMessages = {
   OAuthSignin: "Failed to sign in. Please try again.",
@@ -98,21 +99,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
-      <div className="w-full max-w-md">
-        {/* Error Messages with Animation */}
-        <Suspense fallback={null}>
-          <ErrorAlerts />
-        </Suspense>
+    <RecaptchaProvider>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+        <div className="w-full max-w-md">
+          {/* Error Messages with Animation */}
+          <Suspense fallback={null}>
+            <ErrorAlerts />
+          </Suspense>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <LoginCard mode="google" />
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <LoginCard mode="google" />
+          </motion.div>
+        </div>
       </div>
-    </div>
+    </RecaptchaProvider>
   );
 }
